@@ -1,37 +1,22 @@
-const mongoose = require("mongoose")
+const express = require("express")
+const cors = require("cors")
+const morgan = require("morgan")
 const dotenv = require("dotenv")
-
-// Global exception catcher
-process.on("uncaughtException", (err) => {
-	console.log("Uncaught Exception 💥")
-	console.log(err.name, err.message)
-	process.exit(1)
-})
+const connectDb = require("./config/connectDb")
 
 dotenv.config()
-const app = require("./app")
+connectDb()
 
-const DB = process.env.DATABASE
+const app = express()
 
-mongoose
-	.connect(DB, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
-	.then(() => console.log("DB Connection Successful"))
+app.use(morgan("dev"))
+app.use(express.json())
+app.use(cors())
 
-const port = process.env.PORT || 3000
-const server = app.listen(port, () => {
-	console.log(
-		`App running on port ${port} in ${process.env.NODE_ENV} mode...`
-	)
-})
+app.use("/api/v1/events", require("./routes/eventRoutes"))
 
-// Global Catcher Unhandled Promise Rejections
-process.on("unhandledRejection", (err) => {
-	console.log("Unhandled Promise Rejection 💥")
-	console.log(err.name, err.message)
-	server.close(() => {
-		process.exit(1)
-	})
+const PORT = process.env.PORT || 8080
+
+app.listen(PORT, () => {
+	console.log(`Server running on port ${PORT}`)
 })
